@@ -91,3 +91,61 @@ The original assignment reads:
 \selectlanguage{english}
 This document defines the Minimal Viable Product (MVP) for the Cloak Service, focusing on the essential requirements, API contract, and filter logic without covering authentication or auxiliary modules. It demonstrates a clear understanding of RESTful design and decision‐based filtering, matching the expectations of the Traff Group test assignment.
 
+\newpage 
+\section{Requirements}
+
+\subsection{Functional Requirements}
+\begin{itemize}
+  \item Single HTTPS endpoint: \lstinline|POST /detect|  
+    \begin{itemize}
+      \item Request body (JSON):
+        \begin{lstlisting}[language=json,frame=none]
+{
+  "headers": { ... }
+}
+        \end{lstlisting}
+      \item Response body (JSON):
+        \begin{lstlisting}[language=json,frame=none]
+{
+  "verdict": "bot" | "not_bot",
+  "score": <float>
+}
+        \end{lstlisting}
+         where \(\texttt{score} \in [0,1]\) represents a confidence level, with \(0\) being "not bot" and \(1\) being "bot". The score is calculated based on a series of filters applied to the request headers, such as reputation checks and heuristics.
+    \end{itemize}
+  \item Deterministic verdict on each call.
+  \item Persist each request and verdict in MongoDB:
+    \begin{lstlisting}[language=json,frame=none]
+{
+  "timestamp": "2025-05-07T12:34:56Z",
+  "headers": { ... },
+  "verdict": "bot",
+  "score": <float>
+}
+    \end{lstlisting}
+  \item Cache third-party lookups in MongoDB with TTL.
+\end{itemize}
+
+\subsection{Non-Functional Requirements}
+\begin{itemize}
+  \item Observability: structured JSON logs.
+  \item Tech Stack:
+    \begin{itemize}
+      \item Docker
+      \item Node.js v22 (NestJS)
+      \item MongoDB
+    \end{itemize}
+  \item Extensibility: filter pipeline is pluggable via dependency injection.
+\end{itemize}
+
+\section{Filter Logic}
+
+\section{Examples}
+
+\subsection{Sample Request}
+
+\subsection{Sample Response}
+
+\section{Conclusion}
+
+\end{document}
