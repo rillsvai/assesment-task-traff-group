@@ -1,0 +1,93 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}         
+\usepackage[T2A,T1]{fontenc}          
+\usepackage[english,ukrainian]{babel} 
+
+
+\usepackage[a4paper,margin=1in]{geometry}
+
+\usepackage{lmodern}
+\usepackage{microtype}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+
+\usepackage{listings}
+\usepackage{xcolor}
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  stringstyle=\color{teal},
+  commentstyle=\color{gray},
+  breaklines=true,
+  frame=single,
+  captionpos=b
+}
+\lstdefinelanguage{json}{
+  basicstyle=\ttfamily\small,
+  stringstyle=\color{teal},
+  commentstyle=\color{gray},
+  morestring=[b]",
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morekeywords={true,false,null},
+  sensitive=false,
+  breaklines=true,
+}
+
+\usepackage[hidelinks]{hyperref}
+
+\usepackage{tocloft}
+\renewcommand{\cftsecfont}{\bfseries}
+\renewcommand{\cftsecpagefont}{\bfseries}
+\setlength{\cftbeforesecskip}{4pt}
+\setlength{\headheight}{14.49998pt}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{MVP Cloak Service}
+\lhead{Traff Group}
+\cfoot{\thepage}
+
+
+\begin{document}
+\selectlanguage{english}
+
+\begin{titlepage}
+  \centering
+  {\scshape\LARGE Traff Group\par}
+  \vspace{1.5cm}
+  {\Huge\bfseries MVP of the Cloak Service\par}
+  \vspace{1cm}
+  {\Large Test Assignment\par}
+  \vfill
+  {\large Author: \underline{Kyryl Kvas}\par}
+  {\large Date: \today\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+
+\section{Introduction}
+
+Modern web services are constantly under threat from automated bots that scrape data, execute credential‐stuffing attacks, or overload APIs with malicious traffic. The goal of our Cloak Service is to provide a simple yet logical filter pipeline that classifies each request as either “bot” or “not bot” via a RESTful API, thereby protecting downstream systems from unwanted automated access.
+
+The original assignment reads:
+
+\selectlanguage{ukrainian}
+\begin{quote}
+Коротко описати суть проблеми, яку вирішують даним інструментом. Наша "клоака" повинна приймати дані  
+від користувача через RESTful API та повертати відповідь: "бот" чи "не бот". Суть не в кількості фільтрів, а  
+в логіці їхньої роботи. MVP може бути простим, але ТЗ має показати, що кандидат розуміється на тому, що  
+робить. Ось чим користуємося наразі ми, його документацію можна взяти як приклад \url{https://vpnapi.io/}.  
+Наголосимо, не потрібно описувати ось прям все, суть роботи інструменту, авторизація нас не цікавить — як  
+приклад модуля робота над яким не буде врахована.
+\end{quote}
+
+\selectlanguage{english}
+This document defines the Minimal Viable Product (MVP) for the Cloak Service, focusing on the essential requirements, API contract, and filter logic without covering authentication or auxiliary modules. It demonstrates a clear understanding of RESTful design and decision‐based filtering, matching the expectations of the Traff Group test assignment.
+
