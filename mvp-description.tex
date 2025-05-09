@@ -96,7 +96,7 @@ This document defines the Minimal Viable Product (MVP) for the Cloak Service, fo
 
 \subsection{Functional Requirements}
 \begin{itemize}
-  \item Single HTTPS endpoint: \lstinline|POST /detect|  
+  \item Single HTTPS endpoint: \lstinline|POST /bot-detection/verdict|  
     \begin{itemize}
       \item Request body (JSON):
         \begin{lstlisting}[language=json,frame=none]
@@ -111,7 +111,7 @@ This document defines the Minimal Viable Product (MVP) for the Cloak Service, fo
   "score": <float>
 }
         \end{lstlisting}
-         where \(\texttt{score} \in [0,1]\) represents a confidence level, with \(0\) being "not bot" and \(1\) being "bot". The score is calculated based on a series of filters applied to the request headers, such as reputation checks and heuristics.
+         where \(\texttt{score} \in [0,1]\) represents a confidence level, with \(0\) being "not bot" and \(1\) being "bot". The score is calculated based on a series of filters applied to the request headers
     \end{itemize}
   \item Deterministic verdict on each call.
   \item Persist each request and verdict in MongoDB:
@@ -140,37 +140,63 @@ This document defines the Minimal Viable Product (MVP) for the Cloak Service, fo
 \newpage
 \section{Filter Logic}
 
-The Cloak Service employs a layered approach to bot detection, where certain filters immediately flag a request as suspicious, assigning a verdict of "bot" with a score of 1, while others provide a more heuristic-based evaluation. This approach ensures both speed and accuracy in identifying automated traffic. Below is a detailed breakdown of the filter logic.
+The Cloak Service employs a layered approach to bot detection, where certain filters immediately flag a request as suspicious, assigning a verdict of "bot" with a score of 1, while others provide a more heuristic-based evaluation. This approach ensures both speed and accuracy in identifying automated traffic. \\
+\textbf{Note:} Server-side detection alone is inherently limited—malicious clients can mimic legitimate requests, and HTTP headers can be forged or replayed. For high-assurance scenarios, additional client-side challenges (e.g., JavaScript puzzles or TLS fingerprinting) may be required. \\
+Below is a detailed breakdown of the filter logic.
 
 \subsection{Filters}
 
 \begin{itemize}
-  \item \textbf{User-Agent Analysis:} 
-  Bots often attempt to impersonate legitimate users by modifying or omitting the User-Agent (UA) string. If the User-Agent is missing or matches known bot patterns, the request is immediately flagged as a bot. This results in a verdict of "bot" with a score of 1.
+\item \textbf{Header Integrity:}  
+Bots often omit or falsify critical headers or supply implausible User-Agent (UA) strings. We perform a two-part analysis and then merge the results:
 
-  The condition is as follows:
-  \[
-  S_{\text{UA}} = 
-  \begin{cases} 
-    1 & \text{if UA is missing or matches known bot signature} \\
-    0 & \text{if UA is valid or ambiguous}
-  \end{cases}
-  \]
-  If \( S_{\text{UA}} = 1 \), the request is classified as a "bot" with a score of 1.
+1. \emph{UA validity and pattern check:}  
+   \[
+   S_{\mathrm{UA}} =
+   \begin{cases}
+     1 & \text{if UA is missing or matches patterns from repos }%
+       \href{https://github.com/monperrus/crawler-user-agents}{\texttt{link-on-repo1}}%
+       \text{ or }%
+       \href{https://github.com/herrbischoff/user-agents}{\texttt{link-on-repo2}},\\
+     0 & \text{otherwise}
+   \end{cases}
+   \]
 
-  \item \textbf{Header Consistency Check:} 
-  Bots often fail to include essential headers like \texttt{Referer}, \texttt{Origin}, or \texttt{Accept-Language}, or provide invalid values. If any of these headers are missing or invalid, the request is immediately flagged as a bot.
+2. \emph{Header presence and order:}  
+   Let \(\mathcal{H}=\{\texttt{Host},\texttt{Accept},\texttt{Referer},\texttt{Origin},\texttt{Accept-Language},\ldots\}\). For each \(h\in\mathcal{H}\):
+   \[
+     H_h =
+     \begin{cases}
+       1 & \text{if header }h\text{ is present and matches expected patterns}\\
+       0 & \text{otherwise}
+     \end{cases}
+   \]
+   Define the canonical order indicator:
+   \[
+     H_{\mathrm{ord}} =
+     \begin{cases}
+       1 & \text{if the headers appear in the typical browser order (allowing minor variations)}\\
+       0 & \text{otherwise}
+     \end{cases}
+   \]
+   Then combine into:
+   \[
+     H_{\mathrm{\textit{c}}} =
+     \begin{cases}
+       0 & \exists\,h:H_h=0 \;\lor\; H_{\mathrm{ord}}=0,\\
+       1 & \text{otherwise.}
+     \end{cases}
+   \]
 
-  The condition is as follows:
-  \[
-  H = 
-  \begin{cases}
-    0 & \text{if any critical header is missing or invalid} \\
-    1 & \text{if all required headers are present and valid}
-  \end{cases}
-  \]
-  If \( H = 0 \), the request is classified as a "bot" with a score of 1.
-
+Finally, merge both checks:
+\[
+H =
+\begin{cases}
+0 & S_{\mathrm{UA}}=1 \;\lor\; H_{\mathrm{c}}=0,\\
+1 & \text{otherwise.}
+\end{cases}
+\]
+If \(H=0\), the request is immediately classified as \textbf{bot} (score = 1).  
   \item \textbf{Request Frequency:} 
   Bots tend to send requests much more frequently than legitimate users. If the number of requests from the same IP exceeds a predefined threshold within a short time window, it is flagged as a bot.
 
@@ -192,32 +218,24 @@ The Cloak Service employs a layered approach to bot detection, where certain fil
 
   However, if all the external services fail (e.g., due to network issues or API limits), we fall back to using a list of blocked IP addresses provided by the https://github.com/stamparm/ipsum/tree/master repository. The \textbf{ipsum} repository contains a list of IPs known to be associated with malicious activities. If the IP address matches any in this list (we can use child process for this), we consider it a bot.
 
-  The final IP reputation score is used as follows:
-  \[
-  R_{IP} \in [0, 1]
-  \]
-
-  \textbf{Note:} If the IP reputation score is low, or if all services fail (including the fallback to the \textbf{ipsum} repository), the request will not be immediately flagged as a bot. Other filters (e.g., User-Agent, Header Consistency, and Request Frequency) will be used to make a final determination.
 \end{itemize}
 
 \subsection{Final Verdict}
 
-Once all filters are applied, the final verdict is determined based on the results of the checks. If any of the immediate red flag filters (User-Agent, Header Consistency, or Request Frequency) are triggered, the request is classified as "bot" with a score of 1. Otherwise, the IP reputation score is considered, and the request is classified as a bot if the IP reputation score exceeds the threshold of the external service or if the score is 1. 
+Once all filters are applied, the final verdict is determined based on the results of the checks. If any of the immediate red flag filters (Header Integrity, or Request Frequency) are triggered, the request is classified as "bot" with a score of 1. Otherwise, the IP reputation score is considered, and the request is classified as a bot if the IP reputation score exceeds the threshold of the external service or if the score is 1. 
 
 The final verdict can be expressed as:
 \[
 \text{verdict} = 
 \begin{cases} 
-\text{bot} & \text{if } S_{\text{UA}} = 1 \text{ or } H = 0 \text{ or } F = 1 \text{ or } R_{IP} > T_{\text{service}} \\
+\text{bot} & \text{if } H = 0 \text{ or } F = 1 \text{ or } R_{IP} > T_{\text{service}} \\
 \text{not\_bot} & \text{otherwise}
 \end{cases}
 \]
 
 Where: \newline
-- \( S_{\text{UA}} \) is the result from the User-Agent analysis. \newline
-- \( H \) is the header consistency check result. \newline
+- \( H \) is the header integrity check result. \newline
 - \( F \) is the request frequency check result. \newline
 - \( R_{IP} \) is the reputation score from the external service, compared with \( T_{\text{service}} \).
-
 
 \end{document}
