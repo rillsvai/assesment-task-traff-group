@@ -12,12 +12,14 @@ export default tseslint.config(
   ...tseslint.configs.recommendedTypeChecked,
   ...tseslint.configs.strictTypeChecked,
   eslintPluginPrettierRecommended,
+
   {
     languageOptions: {
       globals: {
         ...globals.node,
         ...globals.jest,
       },
+
       sourceType: 'commonjs',
       parserOptions: {
         projectService: true,
@@ -28,6 +30,20 @@ export default tseslint.config(
   },
   {
     rules: {
+      'max-len': [
+        'error',
+        {
+          code: 100,
+          tabWidth: 2,
+          ignoreUrls: true,
+          ignoreStrings: false,
+          ignoreTemplateLiterals: false,
+          ignoreRegExpLiterals: true,
+          ignoreComments: false,
+          ignoreTrailingComments: false,
+          ignorePattern: null,
+        },
+      ],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-unsafe-argument': 'error',
@@ -45,7 +61,6 @@ export default tseslint.config(
       '@typescript-eslint/ban-ts-comment': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/no-extraneous-class': 'off',
-
       'no-console': 'warn',
       'no-debugger': 'error',
       'no-duplicate-imports': 'error',
