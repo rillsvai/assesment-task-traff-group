@@ -4,9 +4,11 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { Environment } from './common/enums/environment.enum';
 import { LogLevel } from './common/enums/log-level.enum';
-import * as spdy from 'spdy';
 import { join } from 'path';
 import { readFileSync } from 'fs';
+import { Application } from 'express';
+import * as spdy from 'spdy';
+import { RequestListener } from 'http';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,7 +21,7 @@ async function bootstrap() {
 
   await app.init();
 
-  const expressApp = app.getHttpAdapter().getInstance();
+  const expressApp = app.getHttpAdapter().getInstance() as Application;
 
   const keyPath = join(__dirname, '..', 'config', 'certs', 'tls.key');
   const certPath = join(__dirname, '..', 'config', 'certs', 'tls.crt');
@@ -28,14 +30,24 @@ async function bootstrap() {
 
   const port = config.get<number>('PORT')!;
 
-  spdy
-    .createServer({ key, cert, spdy: { protocols: ['h2', 'http/1.1'] } }, expressApp)
-    .listen(port, () => {
-      console.log(`Server is listening on :${port}`);
-    });
+  const handler = expressApp as RequestListener;
+  const spdyServer = spdy.createServer(
+    {
+      key,
+      cert,
+      spdy: { protocols: ['h2', 'http/1.1'] },
+    },
+    handler,
+  );
+
+  spdyServer.listen(port, () => {
+    // eslint-disable-next-line no-console
+    console.log(`Server is listening on :${port.toString()}`);
+  });
 }
 
-bootstrap().catch((err: unknown) => {
-  console.error('Application failed to start', err);
+bootstrap().catch((error: unknown) => {
+  // eslint-disable-next-line no-console
+  console.error('Application failed to start', error);
   process.exit(1);
 });
