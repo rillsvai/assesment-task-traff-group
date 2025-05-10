@@ -44,6 +44,7 @@ export default tseslint.config(
       '@typescript-eslint/strict-boolean-expressions': 'error',
       '@typescript-eslint/ban-ts-comment': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/no-extraneous-class': 'off',
 
       'no-console': 'warn',
       'no-debugger': 'error',
