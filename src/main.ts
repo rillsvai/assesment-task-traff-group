@@ -1,49 +1,29 @@
-// src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { ConfigService } from '@nestjs/config';
-import { Environment } from './common/enums/environment.enum';
-import { LogLevel } from './common/enums/log-level.enum';
-import { join } from 'path';
 import { readFileSync } from 'fs';
-import { Application } from 'express';
-import * as spdy from 'spdy';
-import { RequestListener } from 'http';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const key = readFileSync(join(__dirname, '../config/certs/tls.key'));
+  const cert = readFileSync(join(__dirname, '../config/certs/tls.crt'));
 
-  const config = app.get(ConfigService);
-  const isDev = config.get<Environment>('NODE_ENV') === Environment.Development;
-  const allLevels = Object.values(LogLevel) as LogLevel[];
-  const prodLevels = [LogLevel.Log, LogLevel.Warn, LogLevel.Error, LogLevel.Fatal];
-  app.useLogger(isDev ? allLevels : prodLevels);
+  const serverOptions = {
+    http2: true,
+    https: { key, cert },
+    allowHTTP1: true,
+  };
 
-  await app.init();
-
-  const expressApp = app.getHttpAdapter().getInstance() as Application;
-
-  const keyPath = join(__dirname, '..', 'config', 'certs', 'tls.key');
-  const certPath = join(__dirname, '..', 'config', 'certs', 'tls.crt');
-  const key = readFileSync(keyPath);
-  const cert = readFileSync(certPath);
-
-  const port = config.get<number>('PORT')!;
-
-  const handler = expressApp as RequestListener;
-  const spdyServer = spdy.createServer(
-    {
-      key,
-      cert,
-      spdy: { protocols: ['h2', 'http/1.1'] },
-    },
-    handler,
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter(serverOptions),
   );
 
-  spdyServer.listen(port, () => {
-    // eslint-disable-next-line no-console
-    console.log(`Server is listening on :${port.toString()}`);
-  });
+  const config = app.get(ConfigService);
+  const port = config.get<number>('PORT')!;
+
+  await app.listen(port, '0.0.0.0');
 }
 
 bootstrap().catch((error: unknown) => {
