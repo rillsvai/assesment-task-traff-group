@@ -7,7 +7,7 @@ import { join } from 'path';
 import { Environment } from './common/enums/environment.enum';
 import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { HealthModule } from './health/health.module';
-import { FastifyHttp2SecureOptions, RawServerDefault } from 'fastify';
+import { FastifyHttp2SecureOptions } from 'fastify';
 import { Http2SecureServer } from 'http2';
 
 async function bootstrap() {
