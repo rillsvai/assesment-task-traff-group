@@ -56,6 +56,8 @@ export default tseslint.config(
           varsIgnorePattern: '^_',
         },
       ],
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-extraneous-class': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/strict-boolean-expressions': 'off',
