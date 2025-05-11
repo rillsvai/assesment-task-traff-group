@@ -1,8 +1,8 @@
 export enum LogLevel {
-  Error = 'error',
-  Log = 'log',
-  Warn = 'warn',
+  Trace = 'trace',
   Debug = 'debug',
-  Verbose = 'verbose',
+  Info = 'info',
+  Warn = 'warn',
+  Error = 'error',
   Fatal = 'fatal',
 }
