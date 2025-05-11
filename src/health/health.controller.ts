@@ -1,4 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import {
   HealthCheckService,
   HealthCheck,
@@ -6,12 +7,13 @@ import {
   HttpHealthIndicator,
 } from '@nestjs/terminus';
 
+@ApiTags('Health')
 @Controller('health')
 export class HealthController {
   constructor(
     private readonly health: HealthCheckService,
     private readonly http: HttpHealthIndicator,
-    private readonly db: MongooseHealthIndicator,
+    private readonly mongodb: MongooseHealthIndicator,
   ) {}
 
   @Get('liveness')
@@ -25,7 +27,7 @@ export class HealthController {
   checkReadiness() {
     return this.health.check([
       () => this.http.pingCheck('nestjs-docs', 'https://docs.nestjs.com'),
-      () => this.db.pingCheck('mongo'),
+      () => this.mongodb.pingCheck('mongo'),
     ]);
   }
 }
