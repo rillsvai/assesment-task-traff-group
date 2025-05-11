@@ -5,30 +5,31 @@ import { ConfigService } from '@nestjs/config';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { Environment } from './common/enums/environment.enum';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { HealthModule } from './health/health.module';
+import { FastifyHttp2SecureOptions, RawServerDefault } from 'fastify';
+import { Http2SecureServer } from 'http2';
 
 async function bootstrap() {
-  const key = readFileSync(join(__dirname, '../config/certs/tls.key'));
-  const cert = readFileSync(join(__dirname, '../config/certs/tls.crt'));
+  const key: NonSharedBuffer = readFileSync(join(__dirname, '../config/certs/tls.key'));
+  const cert: NonSharedBuffer = readFileSync(join(__dirname, '../config/certs/tls.crt'));
 
-  const serverOptions = {
+  const serverOptions: FastifyHttp2SecureOptions<Http2SecureServer> = {
     http2: true,
-    https: { key, cert },
-    allowHTTP1: true,
+    https: { key, cert, allowHTTP1: true },
   };
 
-  const app = await NestFactory.create<NestFastifyApplication>(
+  const app: NestFastifyApplication = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(serverOptions),
   );
 
   const config = app.get(ConfigService);
 
-  const isProd = config.get('NODE_ENV') === Environment.Production;
+  const isProd: boolean = config.get('NODE_ENV') === Environment.Production;
 
   if (!isProd) {
-    const docsConfig = new DocumentBuilder()
+    const docsConfig: Omit<OpenAPIObject, 'paths'> = new DocumentBuilder()
       .setTitle('Cloak Service API')
       .setDescription('REST API documentation for Cloak Service')
       .addTag('Health', 'Liveness & readiness probes')
@@ -36,7 +37,7 @@ async function bootstrap() {
       .setVersion('1.0.0')
       .build();
 
-    const document = SwaggerModule.createDocument(app, docsConfig, {
+    const document: OpenAPIObject = SwaggerModule.createDocument(app, docsConfig, {
       include: [HealthModule],
     });
 
