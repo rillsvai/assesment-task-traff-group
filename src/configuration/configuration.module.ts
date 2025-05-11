@@ -11,7 +11,6 @@ const validationSchema = Joi.object({
   PORT: Joi.number().required(),
 
   MONGO_URI: Joi.string().uri().required(),
-  MONGO_DB: Joi.string(),
 });
 
 @Module({
