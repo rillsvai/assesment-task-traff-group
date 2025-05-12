@@ -4,6 +4,7 @@ import { IncomingMessage } from 'http';
 import { LoggerModule } from 'nestjs-pino';
 import * as pino from 'pino';
 import { ignorePaths, staticFileRegex } from './app-logger.constants';
+import { appLogsCollectionName } from 'src/common/constants/mongo.constants';
 
 @Global()
 @Module({
@@ -36,11 +37,8 @@ import { ignorePaths, staticFileRegex } from './app-logger.constants';
                 level: 'info',
                 options: {
                   uri: cfg.get<string>('MONGO_URI'),
-                  collection: 'appLogs',
-                  capped: true,
-                  size: 100 * 1024 * 1024,
+                  collection: appLogsCollectionName,
                   removeKeys: 'req,res,err.stack',
-                  expireAfterSeconds: 60 * 60 * 24 * 30, // 1 month
                 },
               },
             ],
