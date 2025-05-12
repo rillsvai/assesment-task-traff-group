@@ -2,31 +2,46 @@ import { ConfigService } from '@nestjs/config';
 import { Connection } from 'mongoose';
 import { IncomingMessage } from 'http';
 import * as pino from 'pino';
+import { Logger } from '@nestjs/common';
+import { appLogsCollection } from 'src/common/constants/mongo.constants';
 import { ignorePaths, staticFileRegex } from './app-logger.constants';
-import { appLogsCollectionName } from 'src/common/constants/mongo.constants';
+import { FastifyRequest } from 'fastify';
+
+const bootstrapLogger = new Logger('AppLoggerFactory');
 
 export const appLoggerFactory = async (config: ConfigService, connection: Connection) => {
   const db = connection.db!;
 
-  const exists = (await db.listCollections({ name: appLogsCollectionName }).toArray()).length > 0;
+  const { capped, capSize, name } = appLogsCollection;
+  const exists = (await db.listCollections({ name }).toArray()).length > 0;
   if (!exists) {
-    await db.createCollection(appLogsCollectionName, {
-      capped: true,
-      size: 100 * 1024 * 1024,
+    bootstrapLogger.log(`Creating capped "${name}" collection...`);
+
+    await db.createCollection(name, {
+      capped: capped,
+      size: capSize,
     });
   }
 
-  await db
-    .collection(appLogsCollectionName)
-    .createIndex({ time: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 30 });
+  bootstrapLogger.log(`Ensuring TTL index on "${name}.time"`);
+
+  await db.collection(name).createIndex({ time: 1 }, { expireAfterSeconds: 60 });
+
+  bootstrapLogger.log('Bootstrap complete, returning Pino config');
 
   return {
     pinoHttp: {
       level: config.get<string>('LOG_LEVEL'),
       autoLogging: {
-        ignore: (req: IncomingMessage) => {
-          const url = req.url ?? '';
-          return staticFileRegex.test(url) || ignorePaths.some(p => url.startsWith(p));
+        ignore: (req: IncomingMessage & FastifyRequest) => {
+          const url = req.originalUrl.split('?')[0].toLowerCase();
+          const method = req.method.toUpperCase();
+
+          if (method === 'OPTIONS' || method === 'HEAD') return true;
+          if (ignorePaths.some(p => url.startsWith(p))) return true;
+          if (staticFileRegex.test(url)) return true;
+
+          return false;
         },
       },
       transport: {
@@ -46,7 +61,7 @@ export const appLoggerFactory = async (config: ConfigService, connection: Connec
             level: 'info',
             options: {
               uri: config.get<string>('MONGO_URI'),
-              collection: appLogsCollectionName,
+              collection: name,
               removeKeys: 'req,res,err.stack',
             },
           },
