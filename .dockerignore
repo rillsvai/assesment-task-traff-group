@@ -31,3 +31,5 @@ docker-compose*.yml
 *.sln
 
 *.tgz
+
+scripts
