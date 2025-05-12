@@ -25,7 +25,8 @@ export const appLoggerFactory = async (config: ConfigService, connection: Connec
 
   bootstrapLogger.log(`Ensuring TTL index on "${name}.time"`);
 
-  await db.collection(name).createIndex({ time: 1 }, { expireAfterSeconds: 60 });
+  const appLogsTtl = config.get<number>('LOG_TTL');
+  await db.collection(name).createIndex({ time: 1 }, { expireAfterSeconds: appLogsTtl });
 
   bootstrapLogger.log('Bootstrap complete, returning Pino config');
 

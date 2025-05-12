@@ -17,6 +17,7 @@ const validationSchema = Joi.object({
   LOG_LEVEL: Joi.string()
     .valid(...Object.values(LogLevel))
     .required(),
+  LOG_TTL: Joi.number().min(60).required(),
 });
 
 @Module({
