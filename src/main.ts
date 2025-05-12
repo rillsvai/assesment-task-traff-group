@@ -26,7 +26,7 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter(serverOptions),
   );
-  //
+
   const logger = app.get(PinoLogger);
   app.useLogger(logger);
 
