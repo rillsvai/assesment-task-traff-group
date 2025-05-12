@@ -1,7 +1,9 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { IncomingMessage } from 'http';
 import { LoggerModule } from 'nestjs-pino';
 import * as pino from 'pino';
+import { ignorePaths, staticFileRegex } from './app-logger.constants';
 
 @Global()
 @Module({
@@ -11,6 +13,12 @@ import * as pino from 'pino';
       useFactory: (cfg: ConfigService) => ({
         pinoHttp: {
           level: cfg.get<string>('LOG_LEVEL'),
+          autoLogging: {
+            ignore: (req: IncomingMessage) => {
+              const url = req.url ?? '';
+              return staticFileRegex.test(url) || ignorePaths.some(p => url.startsWith(p));
+            },
+          },
           transport: {
             targets: [
               {
@@ -20,6 +28,7 @@ import * as pino from 'pino';
                   colorize: cfg.get('NODE_ENV') !== 'production',
                   translateTime: 'SYS:standard',
                   ignore: 'pid,hostname',
+                  hideObject: false,
                 },
               },
               {
@@ -31,6 +40,7 @@ import * as pino from 'pino';
                   capped: true,
                   size: 100 * 1024 * 1024,
                   removeKeys: 'req,res,err.stack',
+                  expireAfterSeconds: 60 * 60 * 24 * 30, // 1 month
                 },
               },
             ],

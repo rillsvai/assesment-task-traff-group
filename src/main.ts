@@ -9,6 +9,8 @@ import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { HealthModule } from './health/health.module';
 import { FastifyHttp2SecureOptions } from 'fastify';
 import { Http2SecureServer } from 'http2';
+import { Logger as PinoLogger } from 'nestjs-pino';
+import { uuidv7 } from 'uuidv7';
 
 async function bootstrap() {
   const key: NonSharedBuffer = readFileSync(join(__dirname, '../config/certs/tls.key'));
@@ -17,12 +19,16 @@ async function bootstrap() {
   const serverOptions: FastifyHttp2SecureOptions<Http2SecureServer> = {
     http2: true,
     https: { key, cert, allowHTTP1: true },
+    genReqId: () => uuidv7(),
   };
 
   const app: NestFastifyApplication = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(serverOptions),
   );
+  //
+  const logger = app.get(PinoLogger);
+  app.useLogger(logger);
 
   const config = app.get(ConfigService);
 
@@ -49,10 +55,12 @@ async function bootstrap() {
   const port = config.get<number>('PORT')!;
 
   await app.listen(port, '0.0.0.0');
+
+  logger.log('Application has been started');
 }
 
 bootstrap().catch((error: unknown) => {
   // eslint-disable-next-line no-console
-  console.error('Application failed to start', error);
+  console.error('Application has failed to start', error);
   process.exit(1);
 });
