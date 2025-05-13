@@ -32,6 +32,7 @@ export const appLoggerFactory = async (config: ConfigService, connection: Connec
 
   return {
     pinoHttp: {
+      quietReqLogger: true,
       level: config.get<string>('LOG_LEVEL'),
       autoLogging: {
         ignore: (req: IncomingMessage & FastifyRequest) => {

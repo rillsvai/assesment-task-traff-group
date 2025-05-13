@@ -7,19 +7,22 @@ import crawlerList from 'crawler-user-agents';
 import userAgentList from 'user-agents';
 import { HttpHeaderKey } from '../bot-detection.enum';
 import { IncomingHttpHeaders } from 'http';
+import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class HeaderIntegrityFilter implements BotDetectionFilter<IncomingHttpHeaders> {
-  private readonly requiredOrderedHeaders: HttpHeaderKey[] = [
-    HttpHeaderKey.Host,
-    HttpHeaderKey.UserAgent,
-    HttpHeaderKey.Accept,
-    HttpHeaderKey.AcceptLanguage,
-    HttpHeaderKey.AcceptEncoding,
+  private readonly requiredOrderedHeaders: HttpHeaderKey[][] = [
+    [HttpHeaderKey.Host, HttpHeaderKey.Authority],
+    [HttpHeaderKey.UserAgent],
+    [HttpHeaderKey.Accept],
+    [HttpHeaderKey.AcceptLanguage],
+    [HttpHeaderKey.AcceptEncoding],
   ];
 
   constructor(
-    @InjectModel(UserAgentSafety.name) private userAgentSafetyModel: Model<UserAgentSafety>,
+    @InjectModel(UserAgentSafety.name)
+    private readonly userAgentSafetyModel: Model<UserAgentSafety>,
+    private readonly logger: PinoLogger,
   ) {}
 
   async getScore(headers: IncomingHttpHeaders): Promise<number> {
@@ -52,6 +55,13 @@ export class HeaderIntegrityFilter implements BotDetectionFilter<IncomingHttpHea
 
     const isUserAgentSafe = !isCrawler && !isFake;
 
+    this.logger.info('User-Agent safety check', {
+      userAgent,
+      isCrawler,
+      isFake,
+      isUserAgentSafe,
+    });
+
     await this.userAgentSafetyModel.create({ userAgent, safe: isUserAgentSafe });
 
     return isUserAgentSafe;
@@ -60,20 +70,31 @@ export class HeaderIntegrityFilter implements BotDetectionFilter<IncomingHttpHea
   private checkHeadersConsistency(headers: IncomingHttpHeaders): boolean {
     let lastIndex = -1;
 
-    for (const header of this.requiredOrderedHeaders) {
-      if (!(header in headers)) {
+    for (const headerGroup of this.requiredOrderedHeaders) {
+      let headerFound = false;
+      let headerIndex = -1;
+
+      for (const header of headerGroup) {
+        const index = Object.keys(headers).indexOf(header);
+
+        if (index !== -1) {
+          headerFound = true;
+          headerIndex = index;
+          break;
+        }
+      }
+
+      if (!headerFound) {
+        this.logger.info(`All headers from [${headerGroup.join(', ')}] group are missing`);
         return false;
       }
 
-      const index = Object.keys(headers)
-        .map(k => k)
-        .indexOf(header);
-
-      if (index === -1 || index < lastIndex) {
+      if (headerIndex < lastIndex) {
+        this.logger.info(`"${headerGroup.join(', ')}" doesn't have correct placement`);
         return false;
       }
 
-      lastIndex = index;
+      lastIndex = headerIndex;
     }
 
     return true;

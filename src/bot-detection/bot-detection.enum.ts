@@ -5,6 +5,7 @@ export enum HttpHeaderKey {
   UserAgent = 'user-agent',
   Host = 'host',
   XForwardedFor = 'x-forwarded-for',
+  Authority = ':authority',
 }
 
 export enum Verdict {

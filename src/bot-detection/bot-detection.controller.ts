@@ -1,4 +1,4 @@
-import { Controller, HttpCode, Post, Req } from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
 import { BotDetectionService } from './bot-detection.service';
 import { FastifyRequest } from 'fastify';
 import { HttpHeaderKey } from './bot-detection.enum';
@@ -10,8 +10,7 @@ import { VerdictResponseDto } from './bot-detection.dto';
 export class BotDetectionController {
   constructor(private readonly botDetectionService: BotDetectionService) {}
 
-  @Post('verdict')
-  @HttpCode(200)
+  @Get('verdict')
   @ApiOperation({
     summary: 'Get Bot Detection Verdict',
     description: 'Detects if a request is coming from a bot based on multiply filters',
