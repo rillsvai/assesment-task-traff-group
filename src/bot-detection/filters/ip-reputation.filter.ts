@@ -14,7 +14,7 @@ export class IpReputationFilter implements BotDetectionFilter<string> {
   }
 
   private async checkIpReputationFromServiceA(ip: string): Promise<number> {
-    const serviceAScore = await Promise.resolve(0.24);
+    const serviceAScore = await Promise.resolve(0);
 
     this.logger.info(`Service ip gave score ${serviceAScore.toString()} for ${ip}`);
     return serviceAScore;
