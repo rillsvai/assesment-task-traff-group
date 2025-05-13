@@ -2,8 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Verdict } from './bot-detection.enum';
 import { HeaderIntegrityFilter } from './filters/header-integrity.filter';
 import { IpReputationFilter } from './filters/ip-reputation.filter';
-import { VerdictResponseDto } from './bot-detection.interface';
 import { IncomingHttpHeaders } from 'http';
+import { VerdictResponseDto } from './bot-detection.dto';
 
 @Injectable()
 export class BotDetectionService {

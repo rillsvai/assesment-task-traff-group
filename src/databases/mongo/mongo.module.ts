@@ -1,7 +1,7 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MongooseModule, MongooseModuleOptions } from '@nestjs/mongoose';
-import { SchemaDefinition } from 'mongoose';
+import { Schema } from 'mongoose';
 
 @Module({})
 export class MongoModule {
@@ -20,7 +20,7 @@ export class MongoModule {
     };
   }
 
-  static forFeature(models: { name: string; schema: SchemaDefinition }[]): DynamicModule {
+  static forFeature(models: { name: string; schema: Schema }[]): DynamicModule {
     return {
       module: MongoModule,
       imports: [MongooseModule.forFeature(models)],

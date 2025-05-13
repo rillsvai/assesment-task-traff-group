@@ -11,6 +11,7 @@ import { FastifyHttp2SecureOptions } from 'fastify';
 import { Http2SecureServer } from 'http2';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import { uuidv7 } from 'uuidv7';
+import { BotDetectionModule } from './bot-detection/bot-detection.module';
 
 async function bootstrap() {
   const key: NonSharedBuffer = readFileSync(join(__dirname, '../config/certs/tls.key'));
@@ -44,7 +45,7 @@ async function bootstrap() {
       .build();
 
     const document: OpenAPIObject = SwaggerModule.createDocument(app, docsConfig, {
-      include: [HealthModule],
+      include: [HealthModule, BotDetectionModule],
     });
 
     SwaggerModule.setup('docs', app, document, {
