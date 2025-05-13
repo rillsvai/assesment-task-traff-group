@@ -3,11 +3,11 @@ import { BotDetectionFilter } from '../bot-detection.interface';
 import { UserAgentSafety } from '../schemas/user-agent-safety.schema';
 import { Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
-import crawlerList from 'crawler-user-agents';
-import userAgentList from 'user-agents';
+import * as crawlerList from 'crawler-user-agents';
 import { HttpHeaderKey } from '../bot-detection.enum';
 import { IncomingHttpHeaders } from 'http';
 import { PinoLogger } from 'nestjs-pino';
+import { isbot } from 'isbot';
 
 @Injectable()
 export class HeaderIntegrityFilter implements BotDetectionFilter<IncomingHttpHeaders> {
@@ -50,17 +50,17 @@ export class HeaderIntegrityFilter implements BotDetectionFilter<IncomingHttpHea
       return cachedSafetyResult.safe;
     }
 
-    const isCrawler = crawlerList.some(c => new RegExp(c.pattern, 'i').test(userAgent));
-    const isFake = !userAgentList.data.some(e => e.userAgent === userAgent);
+    let isUserAgentSafe = true;
 
-    const isUserAgentSafe = !isCrawler && !isFake;
+    const isCrawler = crawlerList.some(crawler => new RegExp(crawler.pattern, 'i').test(userAgent));
+    isUserAgentSafe = !isCrawler;
 
-    this.logger.info('User-Agent safety check', {
-      userAgent,
-      isCrawler,
-      isFake,
-      isUserAgentSafe,
-    });
+    if (isUserAgentSafe) {
+      const isBot = isbot(userAgent);
+      isUserAgentSafe = !isBot;
+    }
+
+    this.logger.info({ userAgent, isUserAgentSafe }, 'User-Agent safety check');
 
     await this.userAgentSafetyModel.create({ userAgent, safe: isUserAgentSafe });
 
