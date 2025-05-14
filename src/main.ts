@@ -12,6 +12,7 @@ import { Http2SecureServer } from 'http2';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import { uuidv7 } from 'uuidv7';
 import { BotDetectionModule } from './bot-detection/bot-detection.module';
+import { AppExceptionFilter } from './common/filters/app-exception.filter';
 
 async function bootstrap() {
   const key: NonSharedBuffer = readFileSync(join(__dirname, '../config/certs/tls.key'));
@@ -30,8 +31,8 @@ async function bootstrap() {
 
   const logger = app.get(PinoLogger);
   app.useLogger(logger);
-
   const config = app.get(ConfigService);
+  app.useGlobalFilters(new AppExceptionFilter(config));
 
   const isProd: boolean = config.get('NODE_ENV') === Environment.Production;
 
