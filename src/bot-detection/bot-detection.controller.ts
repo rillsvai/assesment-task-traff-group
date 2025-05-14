@@ -4,6 +4,7 @@ import { FastifyRequest } from 'fastify';
 import { HttpHeaderKey } from './bot-detection.enum';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { VerdictResponseDto } from './bot-detection.dto';
+import { internalServerErrorDocumentation } from 'src/common/constants/swagger.constants';
 
 @ApiTags('Bot Detection')
 @Controller('bot-detection')
@@ -20,6 +21,7 @@ export class BotDetectionController {
     description: 'Returns bot detection verdict.',
     type: VerdictResponseDto,
   })
+  @ApiResponse(internalServerErrorDocumentation)
   async getBotDetectionVerdict(@Req() request: FastifyRequest): Promise<VerdictResponseDto> {
     const headers = request.headers;
 

@@ -1,9 +1,9 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { ErrorResponse } from '../interfaces/error.interface';
 import { ErrorMessage } from '../enums/error-message.enum';
 import { ConfigService } from '@nestjs/config';
 import { Environment } from '../enums/environment.enum';
+import { ErrorResponseDto } from '../dto/error.dto';
 
 @Catch()
 export class AppExceptionFilter implements ExceptionFilter {
@@ -18,12 +18,7 @@ export class AppExceptionFilter implements ExceptionFilter {
 
     const message = this.getErrorMessage(exception);
 
-    const errorResponse: ErrorResponse = {
-      statusCode,
-      message,
-      timestamp: new Date().toISOString(),
-      path: request.url,
-    };
+    const errorResponse = new ErrorResponseDto(message, request.url, statusCode);
 
     reply.status(statusCode).send(errorResponse);
   }
