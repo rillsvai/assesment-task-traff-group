@@ -4,7 +4,7 @@ node_modules
 
 .env*
 !.env.example
-
+!.env.test.example
 dist
 coverage
 
