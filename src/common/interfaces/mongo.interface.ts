@@ -1,5 +1,5 @@
 export interface MongoCollectionOptions {
   name: string;
-  capSize: number;
-  capped: boolean;
+  capSize?: number;
+  capped?: boolean;
 }

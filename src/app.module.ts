@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigurationModule } from './configuration/configuration.module';
 import { HealthModule } from './health/health.module';
 import { MongoModule } from './databases/mongo/mongo.module';
 import { AppLoggerModule } from './app-logger/app-logger.module';
 import { BotDetectionModule } from './bot-detection/bot-detection.module';
+import { ConfigurationModule } from './configuration/configuration.module';
 
 @Module({
   imports: [

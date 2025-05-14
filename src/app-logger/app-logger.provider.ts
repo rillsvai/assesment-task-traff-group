@@ -12,15 +12,12 @@ const bootstrapLogger = new Logger('AppLoggerFactory');
 export const appLoggerFactory = async (config: ConfigService, connection: Connection) => {
   const db = connection.db!;
 
-  const { capped, capSize, name } = appLogsCollection;
+  const { name } = appLogsCollection;
   const exists = (await db.listCollections({ name }).toArray()).length > 0;
   if (!exists) {
     bootstrapLogger.log(`Creating capped "${name}" collection...`);
 
-    await db.createCollection(name, {
-      capped: capped,
-      size: capSize,
-    });
+    await db.createCollection(name);
   }
 
   bootstrapLogger.log(`Ensuring TTL index on "${name}.time"`);

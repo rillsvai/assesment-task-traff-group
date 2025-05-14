@@ -47,6 +47,7 @@
     "isbot": "^5.1.28",
     "joi": "^17.13.3",
     "lint-staged": "^16.0.0",
+    "mongodb-memory-server": "^10.1.4",
     "mongoose": "^8.14.2",
     "nestjs-pino": "^4.4.0",
     "pino-mongodb": "^4.3.0",

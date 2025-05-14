@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
 import { join } from 'path';
-import { Environment } from '../common/enums/environment.enum';
-import { LogLevel } from '../common/enums/log-level.enum';
+import { Environment } from '../enums/environment.enum';
+import { LogLevel } from '../enums/log-level.enum';
 
 const envFileName = process.env.NODE_ENV === Environment.Test ? '.env.test' : '.env';
 

@@ -5,15 +5,29 @@ import { AppModule } from '../../src/app.module';
 import { HttpHeaderKey, Verdict } from '../../src/bot-detection/bot-detection.enum';
 import { ConfigService } from '@nestjs/config';
 import { thresholdScore } from '../../src/bot-detection/bot-detection.constants';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
 describe('BotDetectionController (e2e)', () => {
   let app;
   let mongoose: Mongoose;
+  let mongod: MongoMemoryServer;
 
   beforeAll(async () => {
+    mongod = await MongoMemoryServer.create();
+    const uri = mongod.getUri();
+
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(ConfigService)
+      .useValue({
+        get: (key: string) => {
+          if (key === 'MONGO_URI') return uri;
+          if (key === 'LOG_TTL') return 60;
+          return process.env[key];
+        },
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication(new FastifyAdapter());
     await app.init();
@@ -33,6 +47,7 @@ describe('BotDetectionController (e2e)', () => {
   afterAll(async () => {
     await app.close();
     await mongoose.disconnect();
+    await mongod.stop();
   });
 
   describe('GET /bot-detection/verdict', () => {
