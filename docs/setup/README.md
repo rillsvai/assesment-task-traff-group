@@ -82,23 +82,6 @@ openssl req -new -x509 -key config/certs/tls.key -out config/certs/tls.crt -days
 
 This will create the `tls.crt` and `tls.key` files in the `config/certs/` folder, which will be used for the HTTP/2 configuration.
 
-#### 4.1. Generate TLS Certificate and Private Key with ECC (Elliptic Curve)
-
-You can generate a self-signed **TLS certificate** and **private key** using the **Elliptic Curve Cryptography (ECC)** algorithm. Follow these steps:
-
-1. **Generate the private key** (`tls.key`) using the `secp384r1` elliptic curve:
-
-```bash
-openssl ecparam -name secp384r1 -genkey -noout -out config/certs/tls.key
-```
-
-This will create a private key using the `secp384r1` elliptic curve (a secure and efficient curve) and save it in the `config/certs/` folder as `tls.key`.
-
-2. **Generate the self-signed certificate** (`tls.crt`) using the private key:
-
-```bash
-openssl req -new -x509 -key config/certs/tls.key -out config/certs/tls.crt -days 365
-```
 
 ### 5. Docker Setup
 
@@ -113,7 +96,11 @@ docker compose build
 2. **Start the containers**:
 
 ```bash
-docker compose up 
+docker compose up -d
+```
+then
+```bash
+docker compose logs -f api
 ```
 
 This command will start all the services defined in the `docker compose.yaml` file, including the NestJS application with Fastify.

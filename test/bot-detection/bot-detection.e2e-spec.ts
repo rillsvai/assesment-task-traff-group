@@ -1,38 +1,51 @@
 import { Test } from '@nestjs/testing';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
-import { Mongoose } from 'mongoose';
+import { Connection, Mongoose } from 'mongoose';
 import { AppModule } from '../../src/app.module';
 import { HttpHeaderKey, Verdict } from '../../src/bot-detection/bot-detection.enum';
 import { ConfigService } from '@nestjs/config';
 import { thresholdScore } from '../../src/bot-detection/bot-detection.constants';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { getConnectionToken } from '@nestjs/mongoose';
 
 describe('BotDetectionController (e2e)', () => {
   let app;
-  let mongoose: Mongoose;
+  let connection: Connection;
+  let mongod: MongoMemoryServer;
 
   beforeAll(async () => {
+    mongod = await MongoMemoryServer.create();
+    const uri = mongod.getUri();
+
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(ConfigService)
+      .useValue({
+        get: (key: string) => {
+          if (key === 'MONGO_URI') return uri;
+          if (key === 'LOG_TTL') return 60;
+          return process.env[key];
+        },
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication(new FastifyAdapter());
     await app.init();
-
-    const config = app.get(ConfigService);
     await app.getHttpAdapter().getInstance().ready();
 
-    mongoose = new Mongoose();
-    await mongoose.connect(config.get('MONGO_URI'));
+    connection = app.get(getConnectionToken());
   });
 
   beforeEach(async () => {
-    await mongoose.connection.db!.collection('userAgentSafety').deleteMany({});
-    await mongoose.connection.db!.collection('appLogs').deleteMany({});
+    await connection.db!.collection('userAgentSafety').deleteMany({});
+    await connection.db!.collection('appLogs').deleteMany({});
   });
 
   afterAll(async () => {
+    await connection.close();
+    await mongod.stop();
     await app.close();
-    await mongoose.disconnect();
   });
 
   describe('GET /bot-detection/verdict', () => {
