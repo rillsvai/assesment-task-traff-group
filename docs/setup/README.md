@@ -96,7 +96,11 @@ docker compose build
 2. **Start the containers**:
 
 ```bash
-docker compose up 
+docker compose up -d
+```
+then
+```bash
+docker compose logs -f api
 ```
 
 This command will start all the services defined in the `docker compose.yaml` file, including the NestJS application with Fastify.
