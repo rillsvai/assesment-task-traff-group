@@ -58,10 +58,47 @@ Ensure all required test-specific variables are filled out in `.env.test`. (The 
 
 This project supports **HTTP/2** through **Fastify**. Make sure you have the **TLS certificate** and **private key** for your local environment.
 
-1. Place your **certificate** and **private key** files in the `config/certs/` folder.
-2. Ensure that the following paths are correct in the configuration files:
-   - `config/certs/tls.crt`
-   - `config/certs/tls.key`
+#### 4.1. Create Folders and Generate TLS Certificate and Private Key with ECC
+
+To generate a self-signed **TLS certificate** and **private key** using the **Elliptic Curve Cryptography (ECC)** algorithm, follow these steps:
+
+1. **Create the necessary folder structure**:
+
+```bash
+mkdir -p config/certs
+```
+
+2. **Generate the private key** (`tls.key`) using the `secp384r1` elliptic curve:
+
+```bash
+openssl ecparam -name secp384r1 -genkey -noout -out config/certs/tls.key
+```
+
+3. **Generate the self-signed certificate** (`tls.crt`) using the private key:
+
+```bash
+openssl req -new -x509 -key config/certs/tls.key -out config/certs/tls.crt -days 365
+```
+
+This will create the `tls.crt` and `tls.key` files in the `config/certs/` folder, which will be used for the HTTP/2 configuration.
+
+#### 4.1. Generate TLS Certificate and Private Key with ECC (Elliptic Curve)
+
+You can generate a self-signed **TLS certificate** and **private key** using the **Elliptic Curve Cryptography (ECC)** algorithm. Follow these steps:
+
+1. **Generate the private key** (`tls.key`) using the `secp384r1` elliptic curve:
+
+```bash
+openssl ecparam -name secp384r1 -genkey -noout -out config/certs/tls.key
+```
+
+This will create a private key using the `secp384r1` elliptic curve (a secure and efficient curve) and save it in the `config/certs/` folder as `tls.key`.
+
+2. **Generate the self-signed certificate** (`tls.crt`) using the private key:
+
+```bash
+openssl req -new -x509 -key config/certs/tls.key -out config/certs/tls.crt -days 365
+```
 
 ### 5. Docker Setup
 
@@ -70,21 +107,21 @@ This project uses Docker Compose to set up the development environment. Follow t
 1. **Build the Docker images**:
 
 ```bash
-docker-compose build
+docker compose build
 ```
 
 2. **Start the containers**:
 
 ```bash
-docker-compose up 
+docker compose up 
 ```
 
-This command will start all the services defined in the `docker-compose.yml` file, including the NestJS application with Fastify.
+This command will start all the services defined in the `docker compose.yaml` file, including the NestJS application with Fastify.
 
 3. **Stop the containers**:
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ### 6. Running Tests
