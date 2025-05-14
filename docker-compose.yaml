@@ -1,0 +1,29 @@
+services:
+  mongodb:
+    image: mongo:8
+    container_name: cloak_service_mongo
+    restart: unless-stopped
+    volumes:
+      - cloak_service_mongo_data:/data/db
+    ports:
+      - '27017:27017'
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: cloak-service-api:dev
+    container_name: cloak_service_api
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    env_file:
+      - .env
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+
+volumes:
+  cloak_service_mongo_data:

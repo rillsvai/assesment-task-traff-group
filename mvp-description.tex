@@ -154,14 +154,14 @@ Bots often omit or falsify critical headers or supply implausible User-Agent (UA
    \[
    S_{\mathrm{UA}} =
    \begin{cases}
-     1 & \text{if UA is missing or matches patterns from repos }%
-       \href{https://github.com/monperrus/crawler-user-agents}{\texttt{link-on-repo1}}%
-       \text{ or }%
-       \href{https://github.com/herrbischoff/user-agents}{\texttt{link-on-repo2}},\\
+     1 & 
+       \text{if UA is missing or matches patterns from }
+       \href{https://github.com/monperrus/crawler-user-agents}{\texttt{crawler-user-agents}}
+       \text{ or }
+       \href{https://github.com/herrbischoff/user-agents}{\texttt{user-agents}},\\
      0 & \text{otherwise}
    \end{cases}
    \]
-
 2. \emph{Header presence and order:}  
    Let \(\mathcal{H}=\{\texttt{Host},\texttt{Accept},\texttt{Referer},\texttt{Origin},\texttt{Accept-Language},\ldots\}\). For each \(h\in\mathcal{H}\):
    \[
