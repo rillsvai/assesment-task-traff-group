@@ -3,5 +3,4 @@ export interface ErrorResponse {
   message: string;
   timestamp: string;
   path: string;
-  validationErrors?: string[];
 }
