@@ -12,6 +12,7 @@ export default tseslint.config(
       'node_modules/**',
       'coverage/**',
       'commitlint.config.cjs',
+      'jest.config.mjs',
     ],
   },
   eslint.configs.recommended,

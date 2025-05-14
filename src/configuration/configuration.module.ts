@@ -5,6 +5,8 @@ import { Environment } from '../common/enums/environment.enum';
 import { join } from 'path';
 import { LogLevel } from '../common/enums/log-level.enum';
 
+const envFileName = process.env.NODE_ENV === Environment.Test ? '.env.test' : '.env';
+
 const validationSchema = Joi.object({
   NODE_ENV: Joi.string()
     .valid(...Object.values(Environment))
@@ -24,7 +26,7 @@ const validationSchema = Joi.object({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: join(process.cwd(), '.env'),
+      envFilePath: join(process.cwd(), envFileName),
       validationSchema,
     }),
   ],

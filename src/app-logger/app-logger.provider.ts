@@ -3,7 +3,7 @@ import { Connection } from 'mongoose';
 import { IncomingMessage } from 'http';
 import * as pino from 'pino';
 import { Logger } from '@nestjs/common';
-import { appLogsCollection } from 'src/common/constants/mongo.constants';
+import { appLogsCollection } from '../common/constants/mongo.constants';
 import { ignorePaths, staticFileRegex } from './app-logger.constants';
 import { FastifyRequest } from 'fastify';
 

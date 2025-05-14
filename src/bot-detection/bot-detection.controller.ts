@@ -4,7 +4,7 @@ import { FastifyRequest } from 'fastify';
 import { HttpHeaderKey } from './bot-detection.enum';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { VerdictResponseDto } from './bot-detection.dto';
-import { internalServerErrorDocumentation } from 'src/common/constants/swagger.constants';
+import { internalServerErrorDocumentation } from '../common/constants/swagger.constants';
 
 @ApiTags('Bot Detection')
 @Controller('bot-detection')

@@ -4,10 +4,10 @@ import { HeaderIntegrityFilter } from './filters/header-integrity.filter';
 import { IpReputationFilter } from './filters/ip-reputation.filter';
 import { IncomingHttpHeaders } from 'http';
 import { VerdictResponseDto } from './bot-detection.dto';
+import { thresholdScore } from './bot-detection.constants';
 
 @Injectable()
 export class BotDetectionService {
-  private readonly thresholdScore: number = 0.7;
   constructor(
     @Inject() private readonly headerIntegrityFilter: HeaderIntegrityFilter,
     @Inject() private readonly ipReputationFilter: IpReputationFilter,
@@ -30,7 +30,7 @@ export class BotDetectionService {
 
     const normalizedScore = Math.min(1, totalScore);
 
-    if (normalizedScore >= this.thresholdScore) {
+    if (normalizedScore >= thresholdScore) {
       return { score: normalizedScore, verdict: Verdict.Bot };
     }
 
